@@ -1,6 +1,6 @@
 use anchor_lang::{prelude::*, system_program::{Transfer, transfer}};
 
-declare_id!("GnhtsucQHm8nTuffAK4SiQ74xvA9AGqQk34vrcp1W3ES");
+declare_id!("FiTx6nFmuJnP7AX63RrXHWKZRDZL6FYTDFX1EQ61Ajvz");
 
 use mpl_core::{
     fetch_external_plugin_adapter_data_info, 
@@ -177,7 +177,7 @@ pub mod nf_tickets {
         ticket_plugin.push(
             PluginAuthorityPair { 
                 plugin: Plugin::Attributes(Attributes { attribute_list }), 
-                authority: Some(PluginAuthority::UpdateAuthority) 
+                authority: Some(PluginAuthority::UpdateAuthority ) 
             }
         );
 
@@ -233,7 +233,7 @@ pub mod nf_tickets {
             .collection(Some(&ctx.accounts.event.to_account_info()))
             .payer(&ctx.accounts.payer.to_account_info())
             .authority(Some(&ctx.accounts.manager.to_account_info()))
-            .owner(Some(&ctx.accounts.signer.to_account_info()))
+            .owner(Some(&&ctx.accounts.payer.to_account_info()))
             .system_program(&ctx.accounts.system_program.to_account_info())
             .name(args.name)
             .uri(args.uri)
