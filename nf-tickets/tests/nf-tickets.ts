@@ -29,6 +29,7 @@ describe("nf-tickets", () => {
   let eventKeypair: anchor.web3.Keypair;
   let ticketKeypair: anchor.web3.Keypair;
   let venueAuthority = anchor.web3.Keypair.generate().publicKey;
+  let newPayer: anchor.web3.Keypair;
 
   // Test 1: Initializing the platform
   it("Initializes platform", async () => {
@@ -144,6 +145,19 @@ describe("nf-tickets", () => {
   it("Generates a ticket", async () => {
     // Generate keypair for the new ticket
     ticketKeypair = anchor.web3.Keypair.generate();
+    newPayer = anchor.web3.Keypair.generate();
+
+    //add funds to new payer
+    const transaction = new anchor.web3.Transaction().add(
+      anchor.web3.SystemProgram.transfer({
+        fromPubkey: provider.wallet.publicKey,
+        toPubkey: newPayer.publicKey,
+        lamports: 40000000,
+      })
+    );
+
+    await provider.sendAndConfirm(transaction);
+    console.log("transaction sent: ", transaction);
 
     const ticketArgs = {
       name: "Test Ticket",
@@ -155,12 +169,17 @@ describe("nf-tickets", () => {
       seat: "1",
     };
 
+    console.log("signer: ", provider.wallet.publicKey);
+    console.log("manager: ", managerPda);
+    console.log("newPayer: ", newPayer.publicKey);
+    console.log("ticketKeypair: ", ticketKeypair.publicKey);
+
     // Call createTicket method from the program
     const ticketTx = await program.methods
       .createTicket(ticketArgs)
       .accountsPartial({
         signer: provider.wallet.publicKey,
-        payer: provider.wallet.publicKey,
+        payer: newPayer.publicKey,
         manager: managerPda,
         platform: platformPda,
         event: eventKeypair.publicKey,
@@ -169,7 +188,7 @@ describe("nf-tickets", () => {
         systemProgram: anchor.web3.SystemProgram.programId,
         mplCoreProgram: MPL_CORE_PROGRAM_ID,
       })
-      .signers([ticketKeypair])
+      .signers([ticketKeypair, newPayer])
       .rpc();
 
     // Confirm the transaction
@@ -177,6 +196,7 @@ describe("nf-tickets", () => {
 
     // Fetch and validate the ticket
     const ticket = await fetchTicketWithRetry(ticketKeypair.publicKey);
+    console.log("ticket: ", ticket);
     expect(ticket.name).to.equal(ticketArgs.name);
   });
 
