@@ -1,3 +1,4 @@
+import { ArtistProfile } from "./../../../node_modules/.prisma/client/index.d";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import db from "@/app/db";
@@ -7,8 +8,9 @@ export interface session extends Session {
   user: {
     email: string;
     name: string;
-    image: string;
+    image: string | undefined;
     uid: string;
+    ArtistProfile: ArtistProfile | undefined;
   };
 }
 
@@ -21,10 +23,12 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     session: ({ session, token }: any): session => {
-      const newSession: session = session as session;
+      const newSession: session = session;
       if (newSession.user && token.uid) {
         // @ts-ignore
         newSession.user.uid = token.uid ?? "";
+        newSession.user.image = token.picture ?? undefined;
+        newSession.user.ArtistProfile = token.ArtistProfile ?? undefined;
       }
       return newSession!;
     },
@@ -37,7 +41,10 @@ export const authOptions: NextAuthOptions = {
         });
         if (user) {
           token.uid = user.id;
-          token.walletAddress = user.walletAddress;
+        }
+
+        if (profile?.picture) {
+          token.picture = profile.picture;
         }
       }
       return token;
@@ -60,10 +67,16 @@ export const authOptions: NextAuthOptions = {
             data: {
               username: email.split("@")[0], // Using part of email as username
               email: email,
+              image: user.image || undefined,
             },
           });
+        } else if (user.image && dbUser.image !== user.image) {
+          // Update the profile picture if it has changed
+          await db.user.update({
+            where: { id: dbUser.id },
+            data: { image: user.image },
+          });
         }
-
         return true;
       }
 
