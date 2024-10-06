@@ -1,55 +1,13 @@
-import Link from "next/link";
-
-import { siteConfig } from "@/config/site";
-import { cn } from "@/lib/utils";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  CoinsIcon,
-  FileTextIcon,
-  ImageIcon,
-  ShieldIcon,
-  WalletIcon,
-} from "lucide-react";
 import ComingSoon from "@/components/coming-soon";
-
-const actionCards: Array<{
-  title: string;
-  href: string;
-  description: React.ReactNode;
-  icon: React.ReactNode;
-}> = [
-  {
-    title: "On-chain Memo",
-    href: "/memo",
-    description: "Send a simple message on-chain using an SPL Memo.",
-    icon: <FileTextIcon className="size-12" />,
-  },
-  {
-    title: "Staking SOL",
-    href: "/stake",
-    description:
-      "Help secure the Solana network by staking SOL to a validator.",
-    icon: <ShieldIcon className="size-12" />,
-  },
-  {
-    title: "Transfer Native SOL",
-    href: "/transfer-sol",
-    description: "Easily transfer native SOL to any other Solana wallet.",
-    icon: <WalletIcon className="size-12" />,
-  },
-];
 
 export default async function Pages() {
   return (
     <>
       <section
         id="features"
-        className={
-          "container space-y-12 bg-slate-50 py-8 dark:bg-transparent md:py-12 lg:py-24"
-        }
+        className={"containerspace-y-12 py-8  md:py-12 lg:py-24"}
       >
-        <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-6 text-center">
+        <div className="mx-auto text-white flex max-w-[58rem] flex-col items-center space-y-6 text-center">
           <h2 className="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-6xl">
             NFTs - New, Fairer Ticketing.
           </h2>

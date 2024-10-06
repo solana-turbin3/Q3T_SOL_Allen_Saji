@@ -27,8 +27,8 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <Providers>
-          <div className="flex min-h-screen flex-col">
-            <header className="container z-40 bg-background">
+          <div className="flex min-h-screen bg-black flex-col">
+            <header className="container z-40">
               <div className="flex h-20 items-center justify-between py-6">
                 <Navbar />
               </div>
