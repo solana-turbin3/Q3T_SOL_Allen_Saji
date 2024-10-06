@@ -30,7 +30,7 @@ model ArtistProfile {
   user              User     @relation(fields: [userId], references: [id])
   artistName        String
   bio               String?
-  genre             String?
+  category          Category
   profilePictureUrl String?
   backgroundImageUrl String?
   createdAt         DateTime @default(now())
@@ -52,6 +52,14 @@ model Event {
   description String?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+}
+
+enum Category {
+ Music 
+ Comedy
+ Tech
+ Dance
+ Sports
 }
 
 enum Provider {
