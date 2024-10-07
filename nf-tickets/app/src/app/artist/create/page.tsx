@@ -1,104 +1,210 @@
 "use client";
-import React, { useState } from "react";
-import { ReclaimProofRequest } from "@reclaimprotocol/js-sdk";
-import QRCode from "react-qr-code"; // Correct import for react-qr-code
+import React, { useState, FormEvent, useEffect } from "react";
+import { useWallet, useConnection } from "@solana/wallet-adapter-react";
+import { WalletModalButton } from "@solana/wallet-adapter-react-ui"; // For wallet connect modal
+import { useSession } from "next-auth/react";
+import { createManager } from "@/app/lib/anchor";
 
-const CreateArtistProfile = () => {
-  const [verificationStatus, setVerificationStatus] = useState("");
-  const [requestUrl, setRequestUrl] = useState("");
-  const [loading, setLoading] = useState(false); // For showing loader
+type FormData = {
+  artistName: string;
+  bio: string;
+  category: string;
+};
 
-  const getVerificationReq = async () => {
-    setLoading(true); // Show loader
-    const APP_ID = process.env.NEXT_PUBLIC_RECLAIM_APP_ID as string;
-    const APP_SECRET = process.env.NEXT_PUBLIC_RECLAIM_APP_SECRET as string;
-    const PROVIDER_ID = "0b68fab7-962e-45bb-8c34-475f12a854ba";
+const ArtistProfileForm = () => {
+  const [formData, setFormData] = useState<FormData>({
+    artistName: "",
+    bio: "",
+    category: "",
+  });
+  const { data: session } = useSession();
+  const userId = session?.user?.uid;
+  const [errors, setErrors] = useState<Partial<FormData>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Wallet connection hooks
+  const wallet = useWallet();
+
+  const validateForm = (): boolean => {
+    const newErrors: Partial<FormData> = {};
+    if (!formData.artistName.trim()) {
+      newErrors.artistName = "Artist name is required";
+    }
+    if (!formData.category) {
+      newErrors.category = "Please select a category";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({ ...prevData, [name]: value }));
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+    if (!wallet.connected) {
+      setError("Please connect your wallet before submitting");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
 
     try {
-      const reclaimProofRequest = await ReclaimProofRequest.init(
-        APP_ID,
-        APP_SECRET,
-        PROVIDER_ID
-      );
+      // Call the createManager function to create the PDA and let the user pay
+      const managerPda = await createManager(wallet);
+      console.log("Manager PDA:", managerPda.toString());
 
-      reclaimProofRequest.setParams({
-        Followers: "100",
+      const submissionData = {
+        ...formData,
+        walletAddress: wallet.publicKey.toString(),
+        userId: userId,
+      };
+
+      const response = await fetch("/api/artist/profile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(submissionData),
       });
 
-      const generatedRequestUrl = await reclaimProofRequest.getRequestUrl();
-      setRequestUrl(generatedRequestUrl); // Set the request URL to show the QR code
-      setLoading(false); // Hide loader
-
-      await reclaimProofRequest.startSession({
-        onSuccess: (proofs) => {
-          console.log("Proofs:", proofs);
-          if (
-            parseInt(proofs.extractedParameterValues.InstagramFollowerCount) >
-            100
-          ) {
-            setVerificationStatus("Verified");
-            window.location.href = "/artist/profile"; // Redirect to artist profile upon success
-          } else {
-            setVerificationStatus("Verification failed. Please try again.");
-          }
-        },
-        onError: (error) => {
-          console.log("Error:", error);
-          setVerificationStatus("Verification failed. Please try again.");
-        },
-      });
-    } catch (error) {
-      console.log("Verification request error:", error);
-      setLoading(false); // Hide loader in case of error
-      setVerificationStatus("Verification failed. Please try again.");
+      if (!response.ok) {
+        throw new Error("Something went wrong. Please try again later.");
+      } else {
+        setFormData({ artistName: "", bio: "", category: "" });
+        console.log(await response.json());
+      }
+    } catch (err) {
+      setError("Something went wrong. Please try again later.");
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  useEffect(() => {
+    if (error && wallet.connected) {
+      setError(null);
+    }
+  }, [wallet.connected, error]);
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded shadow-lg text-center w-full max-w-md">
-        <h1 className="text-2xl font-semibold mb-4">Create Artist Profile</h1>
-        <p className="text-gray-600 mb-6">
-          In order to create an artist profile, you must prove you have 10,000+
-          followers on Instagram using Reclaim Protocol.
-        </p>
-
-        {loading ? (
-          <div className="mb-4">Loading...</div> // Show loader while fetching the request URL
-        ) : (
-          <button
-            onClick={getVerificationReq}
-            className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600 mb-4"
-          >
-            Prove with Instagram
-          </button>
-        )}
-
-        {requestUrl && (
-          <div className="mb-4">
-            <h2 className="text-lg font-semibold mb-2">
-              Scan the QR code with Instagram:
-            </h2>
-            <div className="flex m-4 justify-center">
-              <QRCode value={requestUrl} size={256} />
+    <div className="min-h-screen bg-[#DEFF58] text-black p-8">
+      <div className="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl relative">
+        <div className="absolute top-4 right-4 flex items-center space-x-4">
+          {!wallet.connected ? (
+            <WalletModalButton className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded">
+              Connect Wallet
+            </WalletModalButton>
+          ) : (
+            <>
+              <p className="text-green-600">Wallet Connected</p>
+              <button
+                onClick={wallet.disconnect}
+                className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded"
+              >
+                Disconnect
+              </button>
+            </>
+          )}
+        </div>
+        <div className="p-8 pt-16">
+          <h1 className="text-2xl font-bold mb-6">Create Artist Profile</h1>
+          {error && (
+            <div
+              className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+              role="alert"
+            >
+              <span className="block sm:inline">{error}</span>
             </div>
-          </div>
-        )}
+          )}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label
+                htmlFor="artistName"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Artist Name
+              </label>
+              <input
+                type="text"
+                id="artistName"
+                name="artistName"
+                value={formData.artistName}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                placeholder="Enter artist name"
+              />
+              {errors.artistName && (
+                <p className="mt-2 text-sm text-red-600">{errors.artistName}</p>
+              )}
+            </div>
 
-        {verificationStatus && (
-          <p
-            className={`mt-4 ${
-              verificationStatus.includes("Verified")
-                ? "text-green-600"
-                : "text-red-600"
-            }`}
-          >
-            {verificationStatus}
-          </p>
-        )}
+            <div>
+              <label
+                htmlFor="bio"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Bio
+              </label>
+              <textarea
+                id="bio"
+                name="bio"
+                value={formData.bio}
+                onChange={handleChange}
+                rows={4}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                placeholder="Tell us about yourself"
+              ></textarea>
+            </div>
+
+            <div>
+              <label
+                htmlFor="category"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Category
+              </label>
+              <select
+                id="category"
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+              >
+                <option value="">Select category</option>
+                <option value="Music">Music</option>
+                <option value="Comedy">Comedy</option>
+                <option value="Tech">Tech</option>
+                <option value="Dance">Dance</option>
+                <option value="Sports">Sports</option>
+              </select>
+              {errors.category && (
+                <p className="mt-2 text-sm text-red-600">{errors.category}</p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmitting || !wallet.connected}
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+            >
+              {isSubmitting ? "Creating..." : "Create Profile"}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );
 };
 
-export default CreateArtistProfile;
+export default ArtistProfileForm;
