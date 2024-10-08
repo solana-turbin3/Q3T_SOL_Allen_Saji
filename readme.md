@@ -1,71 +1,72 @@
-This repository contains all my work done during Q3 Turbine Solana Builders Cohort.
+🎟️ Artist & Events Social Media Ticketing Platform
+An NFT-based platform empowering artists and event organizers with customizable ticketing options and a social media space to promote, sell, and engage directly with their fans. The platform also offers a trustless secondary market for reselling tickets and a marketplace for artist tokens with exclusive perks for token holders.
 
-# Capstone Project
+🚀 Overview
+This platform aims to revolutionize ticketing by leveraging blockchain technology (Solana) to provide artists and event organizers with full control over their event tickets. It allows customization of ticket attributes such as transferability, royalties, and resale pricing. Alongside ticketing, the platform offers social media tools to promote events, sell merchandise, and post updates. Fans can also purchase limited artist tokens to access exclusive content and early access to event tickets.
 
-## NFT Ticketing Platform (NFTickets)
+Key Highlights:
 
-### Devnet Deployed Address: `5qCfMhUmbJmau9SGHP1qAEMfKwEzyyyQ846SMXX2y6w`
+NFT-based ticketing with customizable rules.
+Trustless escrow-based secondary ticket market.
+Marketplace for artist tokens with limited supply.
+Social media features to promote events and merchandise.
+Integration with Solana Blinks for ticket sales via social media (e.g., X).
+✨ Features
+🎟️ Customizable NFT Tickets
+Artists can configure tickets with specific rules:
+Transferability: Choose whether tickets can be resold.
+Royalty Percentage: Set royalties for secondary sales.
+Price Cap: Limit the resale price for fairness.
+🔄 Secondary Ticket Market (Trustless Escrow)
+Fans can resell tickets in a trustless escrow environment, with automatic enforcement of artist royalties and price caps to prevent scalping.
+🛒 Marketplace for Artist Tokens
+Each artist can issue limited tokens. Token holders gain:
+Early access to tickets for exclusive events.
+Priority access to limited merchandise drops.
+📢 Social Media Integration for Artists & Events
+Artists and event organizers can post event details, engage with their fans, and promote merchandise within the platform.
+🔗 Solana Blink Links for Ticket Sales
+Artists can generate Solana Blink links to sell tickets directly on external platforms like X, enhancing reach and flexibility.
+🛍️ Merchandise Sales
+Integrated e-commerce features for artists and organizers to sell branded merchandise directly to fans.
+🛠️ Tech Stack & Architecture
+Tech Stack
+Frontend: Next.js (TypeScript)
+Backend: Anchor (Solana, Rust) for smart contracts
+NFTs: Metaplex Core for NFT ticket management
+Database: PostgreSQL with Prisma ORM
+Storage: AWS S3 for media assets
+Blockchain: Solana (for NFTs and transactions)
+Wallet Integration: Solana web3.js for wallet connection
+Architecture Diagram
 
-## Project Overview
+📦 Installation
+Clone the repository:
 
-The NFT Ticketing Platform is a decentralized solution aimed at revolutionizing the event ticketing industry by leveraging blockchain technology, specifically on the Solana network. The platform allows artists to engage with their audience directly by selling NFT-based tickets, which offer various customizations, including non-transferable tickets, royalty percentages, and reselling time frames. The platform also incorporates a reward system where users earn platform-specific tokens upon purchasing tickets.
+bash
+Copy code
+git clone https://github.com/your-repo-name.git
+cd your-repo-name
+Install dependencies:
 
-### Key Features
+bash
+Copy code
+npm install
+Set up the environment variables (create a .env file):
 
-1. **Artist Customization**: Artists can customize how their tickets are sold by setting parameters like:
-   - Transferability options
-   - Bidding for premium tickets
-   - Resale restrictions (time frames, royalties, etc.)
-2. **Admin Control**: Admins approve events and ensure compliance, as well as manage platform policies.
+bash
+Copy code
+DATABASE_URL=your_postgresql_url
+AWS_ACCESS_KEY=your_aws_access_key
+AWS_SECRET_KEY=your_aws_secret_key
+Run the development server:
 
-3. **User Experience**:
+bash
+Copy code
+npm run dev
+🛠️ Smart Contracts
+The smart contracts are written using Anchor (Rust) and include the following modules:
 
-   - Users can purchase, sell, and bid on NFT tickets securely.
-   - NFT tickets serve as proof of entry, stored in digital wallets.
-
-4. **Rewards System**: On every ticket purchase, users are rewarded with platform-specific tokens, enhancing engagement.
-
-5. **Lazy Minting**: Instead of minting all tickets upfront, tickets are minted only when purchased, reducing storage and gas costs.
-
-### Tech Stack
-
-- **Smart Contracts**: Built using **Anchor** framework on **Solana**.
-- **Programming Language**: Rust for on-chain logic.
-- **Frontend**: Next.js (TypeScript) for user interaction with the blockchain.
-- **Backend**: API integration via Next.js server.
-- **Database**: PostgreSQL for event data management.
-
-### Smart Contract Overview
-
-- **Platform PDA**: Contains platform-specific details such as admin, reward mint authority, and platform name.
-- **Event PDA**: Created when a new event is listed, storing event-specific data (capacity, pricing, custom settings).
-- **Ticket PDA**: Lazy minted on user purchase, associated with seating and other ticket information.
-
-### Setting Up the Project
-
-1. **Initialize the Platform**:
-
-   - The platform is initialized with an admin account and sets up a reward token mint.
-   - The platform itself acts as the mint authority for all token-related activities.
-
-2. **Event Creation**:
-
-   - Artists create an event with customizable settings such as bidding and seating.
-   - Events are verified and approved by the admin.
-
-3. **Lazy Minting**:
-
-   - Tickets are minted only when a user purchases them, saving on transaction costs and storage.
-   - Upon ticket minting, associated reward tokens are sent to the buyer’s wallet.
-
-4. **Reward System**:
-   - Users are rewarded platform tokens on each ticket purchase.
-   - The platform handles token minting and distribution through the event's PDA.
-
-### How to Contribute
-
-1. Clone the repo
-   ```bash
-   git clone <repo-url>
-   cd nft-ticketing-platform
-   ```
+Ticket Creation & Management: Mint NFT tickets with specific attributes.
+Artist Token Creation: Issue limited artist tokens with utility.
+Secondary Market Escrow: Trustless escrow for secure resale of tickets.
