@@ -18,7 +18,7 @@ This platform aims to revolutionize ticketing by leveraging blockchain technolog
 
 ## Concept UI:
 
-![Artist Page](./public/Artist%20profile.png)
+![Artist Page](./app/public/Artist%20profile.png)
 
 ## ✨ Features
 
@@ -66,4 +66,4 @@ The platform is built using modern web technologies and blockchain tools to ensu
 
 ### Architecture Diagram
 
-![Architecture for NFT Ticketing](./public/NFTickets%20architecture%20final.png)
+![Architecture for NFT Ticketing](./app/public/NFTickets%20architecture%20final.png)
