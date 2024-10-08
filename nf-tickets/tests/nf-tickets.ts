@@ -30,6 +30,7 @@ describe("nf-tickets", () => {
   let ticketKeypair: anchor.web3.Keypair;
   let venueAuthority = anchor.web3.Keypair.generate().publicKey;
   let newPayer: anchor.web3.Keypair;
+  let artist: anchor.web3.Keypair;
 
   // Test 1: Initializing the platform
   it("Initializes platform", async () => {
@@ -77,17 +78,17 @@ describe("nf-tickets", () => {
       })
       .rpc();
 
-    //Fund the treasury PDA with the minimum rent-exempt amount
-    const transaction2 = new anchor.web3.Transaction().add(
-      anchor.web3.SystemProgram.transfer({
-        fromPubkey: provider.wallet.publicKey,
-        toPubkey: treasuryPda,
-        lamports: lamportsForRentExemption,
-      })
-    );
+    // //Fund the treasury PDA with the minimum rent-exempt amount
+    // const transaction2 = new anchor.web3.Transaction().add(
+    //   anchor.web3.SystemProgram.transfer({
+    //     fromPubkey: provider.wallet.publicKey,
+    //     toPubkey: treasuryPda,
+    //     lamports: lamportsForRentExemption,
+    //   })
+    // );
 
-    // Send the transaction to make the PDA rent-exempt
-    await provider.sendAndConfirm(transaction2);
+    // // Send the transaction to make the PDA rent-exempt
+    // await provider.sendAndConfirm(transaction2);
 
     // Fetch the platform account and verify its data
     const platformAccount = await program.account.platform.fetch(platformPda);
@@ -98,192 +99,220 @@ describe("nf-tickets", () => {
     expect(platformAccount.platformName).to.equal(platformName);
   });
 
-  // // Test 2: Setting up the manager
-  // it("Sets up manager", async () => {
-  //   // Derive PDA for the manager
-  //   [managerPda] = anchor.web3.PublicKey.findProgramAddressSync(
-  //     [Buffer.from("manager"), provider.wallet.publicKey.toBuffer()],
-  //     program.programId
-  //   );
+  // Test 2: Setting up the manager
+  it("Sets up manager", async () => {
+    artist = anchor.web3.Keypair.generate();
 
-  //   // Call setupManager method from the program
-  //   await program.methods.setupManager().accounts({}).rpc();
+    //add funds to new payer
+    const transaction = new anchor.web3.Transaction().add(
+      anchor.web3.SystemProgram.transfer({
+        fromPubkey: provider.wallet.publicKey,
+        toPubkey: artist.publicKey,
+        lamports: 40000000,
+      })
+    );
 
-  //   // Fetch and validate the manager account
-  //   const managerAccount = await program.account.manager.fetch(managerPda);
-  //   expect(managerAccount).to.exist;
-  // });
+    await provider.sendAndConfirm(transaction);
+    //console.log("transaction sent: ", transaction);
 
-  // // Test 3: Creating an event
-  // it("Creates an event", async () => {
-  //   // Generate keypair for the new event
-  //   eventKeypair = anchor.web3.Keypair.generate();
-  //   const eventArgs = {
-  //     name: "Test Event",
-  //     category: "Music",
-  //     uri: "https://example.com/event",
-  //     city: "Test City",
-  //     venue: "Test Venue",
-  //     artist: "Test Artist",
-  //     date: "2024-10-01",
-  //     time: "20:00",
-  //     capacity: 1,
-  //     isTicketTransferable: true,
-  //   };
+    // Derive PDA for the manager
+    [managerPda] = anchor.web3.PublicKey.findProgramAddressSync(
+      [Buffer.from("manager"), artist.publicKey.toBuffer()],
+      program.programId
+    );
 
-  //   // Call createEvent method from the program
-  //   const eventTx = await program.methods
-  //     .createEvent(eventArgs)
-  //     .accountsPartial({
-  //       signer: provider.wallet.publicKey,
-  //       payer: provider.wallet.publicKey,
-  //       manager: managerPda,
-  //       event: eventKeypair.publicKey,
-  //       systemProgram: anchor.web3.SystemProgram.programId,
-  //       mplCoreProgram: MPL_CORE_PROGRAM_ID,
-  //     })
-  //     .signers([eventKeypair])
-  //     .rpc();
+    // Call setupManager method from the program
+    await program.methods
+      .setupManager()
+      .accountsPartial({
+        signer: artist.publicKey,
+        payer: artist.publicKey,
+        manager: managerPda,
+      })
+      .signers([artist])
+      .rpc();
 
-  //   // Confirm the transaction
-  //   await provider.connection.confirmTransaction(eventTx);
+    // Fetch and validate the manager account
+    const managerAccount = await program.account.manager.fetch(managerPda);
+    expect(managerAccount).to.exist;
+  });
 
-  //   // Fetch and validate the event collection
-  //   const collection = await fetchCollectionWithRetry(eventKeypair.publicKey);
-  //   expect(collection.name).to.equal(eventArgs.name);
-  // });
+  // Test 3: Creating an event
+  it("Creates an event", async () => {
+    // Generate keypair for the new event
+    eventKeypair = anchor.web3.Keypair.generate();
+    const eventArgs = {
+      name: "Test Event",
+      category: "Music",
+      uri: "https://example.com/event",
+      city: "Test City",
+      venue: "Test Venue",
+      artist: "Test Artist",
+      date: "2024-10-01",
+      time: "20:00",
+      capacity: 1,
+      isTicketTransferable: true,
+    };
 
-  // // Test 4: Generating a ticket
-  // it("Generates a ticket", async () => {
-  //   // Generate keypair for the new ticket
-  //   ticketKeypair = anchor.web3.Keypair.generate();
-  //   newPayer = anchor.web3.Keypair.generate();
+    // Call createEvent method from the program
+    const eventTx = await program.methods
+      .createEvent(eventArgs)
+      .accountsPartial({
+        signer: artist.publicKey,
+        payer: artist.publicKey,
+        manager: managerPda,
+        event: eventKeypair.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+        mplCoreProgram: MPL_CORE_PROGRAM_ID,
+        artist: artist.publicKey,
+      })
+      .signers([eventKeypair, artist])
+      .rpc();
 
-  //   //add funds to new payer
-  //   const transaction = new anchor.web3.Transaction().add(
-  //     anchor.web3.SystemProgram.transfer({
-  //       fromPubkey: provider.wallet.publicKey,
-  //       toPubkey: newPayer.publicKey,
-  //       lamports: 40000000,
-  //     })
-  //   );
+    // Confirm the transaction
+    await provider.connection.confirmTransaction(eventTx);
 
-  //   await provider.sendAndConfirm(transaction);
-  //   console.log("transaction sent: ", transaction);
+    // Fetch and validate the event collection
+    const collection = await fetchCollectionWithRetry(eventKeypair.publicKey);
+    expect(collection.name).to.equal(eventArgs.name);
+  });
 
-  //   const ticketArgs = {
-  //     name: "Test Ticket",
-  //     uri: "https://example.com/ticket",
-  //     price: new anchor.BN(10000),
-  //     venueAuthority,
-  //     screen: "Screen 1",
-  //     row: "A",
-  //     seat: "1",
-  //   };
+  // Test 4: Generating a ticket
+  it("Generates a ticket", async () => {
+    // Generate keypair for the new ticket
+    ticketKeypair = anchor.web3.Keypair.generate();
+    newPayer = anchor.web3.Keypair.generate();
 
-  //   // Call createTicket method from the program
-  //   const ticketTx = await program.methods
-  //     .createTicket(ticketArgs)
-  //     .accountsPartial({
-  //       signer: provider.wallet.publicKey,
-  //       payer: newPayer.publicKey,
-  //       manager: managerPda,
-  //       platform: platformPda,
-  //       event: eventKeypair.publicKey,
-  //       ticket: ticketKeypair.publicKey,
-  //       treasury: treasuryPda,
-  //       systemProgram: anchor.web3.SystemProgram.programId,
-  //       mplCoreProgram: MPL_CORE_PROGRAM_ID,
-  //     })
-  //     .signers([ticketKeypair, newPayer])
-  //     .rpc();
+    //add funds to new payer
+    const transaction = new anchor.web3.Transaction().add(
+      anchor.web3.SystemProgram.transfer({
+        fromPubkey: provider.wallet.publicKey,
+        toPubkey: newPayer.publicKey,
+        lamports: 40000000,
+      })
+    );
 
-  //   // Confirm the transaction
-  //   await provider.connection.confirmTransaction(ticketTx);
+    await provider.sendAndConfirm(transaction);
+    //console.log("transaction sent: ", transaction);
 
-  //   // Fetch and validate the ticket
-  //   const ticket = await fetchTicketWithRetry(ticketKeypair.publicKey);
-  //   console.log("ticket: ", ticket);
-  //   expect(ticket.name).to.equal(ticketArgs.name);
-  // });
+    const ticketArgs = {
+      name: "Test Ticket",
+      uri: "https://example.com/ticket",
+      price: new anchor.BN(10000),
+      venueAuthority,
+      screen: "Screen 1",
+      row: "A",
+      seat: "1",
+    };
 
-  // // Test case: Withdraw funds from treasury
-  // it("Withdraws funds from treasury", async () => {
-  //   // Fetch the minimum SOL required for rent exemption
-  //   const lamportsForRentExemption =
-  //     await provider.connection.getMinimumBalanceForRentExemption(200); // No data space for treasury, only lamports
+    // Call createTicket method from the program
+    const ticketTx = await program.methods
+      .createTicket(ticketArgs)
+      .accountsPartial({
+        signer: newPayer.publicKey,
+        payer: newPayer.publicKey,
+        manager: managerPda,
+        platform: platformPda,
+        event: eventKeypair.publicKey,
+        ticket: ticketKeypair.publicKey,
+        treasury: treasuryPda,
+        systemProgram: anchor.web3.SystemProgram.programId,
+        mplCoreProgram: MPL_CORE_PROGRAM_ID,
+        artist: artist.publicKey,
+      })
+      .signers([ticketKeypair, newPayer])
+      .rpc();
 
-  //   // Fund the treasury PDA with the minimum rent-exempt amount
-  //   const transaction = new anchor.web3.Transaction().add(
-  //     anchor.web3.SystemProgram.transfer({
-  //       fromPubkey: provider.wallet.publicKey,
-  //       toPubkey: treasuryPda,
-  //       lamports: lamportsForRentExemption,
-  //     })
-  //   );
+    // console.log("artist: ", artist.publicKey);
+    // console.log("new payer: ", newPayer.publicKey);
+    // console.log("event: ", eventKeypair.publicKey);
 
-  //   // Send the transaction to make the PDA rent-exempt
-  //   await provider.sendAndConfirm(transaction);
+    // Confirm the transaction
+    await provider.connection.confirmTransaction(ticketTx);
 
-  //   let amountToWithdraw = new anchor.BN(10000);
+    // Fetch and validate the ticket
+    const ticket = await fetchTicketWithRetry(ticketKeypair.publicKey);
+    console.log("ticket: ", ticket);
+    expect(ticket.name).to.equal(ticketArgs.name);
+  });
 
-  //   // Fetch admin's initial balance
-  //   const initialAdminBalance = await provider.connection.getBalance(
-  //     provider.wallet.publicKey
-  //   );
+  // Test case: Withdraw funds from treasury
+  it("Withdraws funds from treasury", async () => {
+    // Fetch the minimum SOL required for rent exemption
+    const lamportsForRentExemption =
+      await provider.connection.getMinimumBalanceForRentExemption(200); // No data space for treasury, only lamports
 
-  //   // Call withdraw_from_treasury method from the program
-  //   await program.methods
-  //     .withdrawFromTreasury(amountToWithdraw)
-  //     .accounts({
-  //       admin: provider.wallet.publicKey,
-  //       platform: platformPda,
-  //       treasury: treasuryPda,
-  //       systemProgram: anchor.web3.SystemProgram.programId,
-  //     })
-  //     .rpc();
+    // Fund the treasury PDA with the minimum rent-exempt amount
+    const transaction = new anchor.web3.Transaction().add(
+      anchor.web3.SystemProgram.transfer({
+        fromPubkey: provider.wallet.publicKey,
+        toPubkey: treasuryPda,
+        lamports: lamportsForRentExemption,
+      })
+    );
 
-  //   // Fetch admin's balance after withdrawal
-  //   const finalAdminBalance = await provider.connection.getBalance(
-  //     provider.wallet.publicKey
-  //   );
+    // Send the transaction to make the PDA rent-exempt
+    await provider.sendAndConfirm(transaction);
 
-  //   // Check that the balance has increased by the correct amount
-  //   expect(finalAdminBalance).to.be.greaterThan(initialAdminBalance);
-  // });
+    let amountToWithdraw = new anchor.BN(10000);
 
-  // // Helper function: Retry fetching a collection
-  // const fetchCollectionWithRetry = async (
-  //   eventPublicKey: anchor.web3.PublicKey,
-  //   retries = 50,
-  //   delay = 2000
-  // ) => {
-  //   for (let i = 0; i < retries; i++) {
-  //     try {
-  //       return await fetchCollectionV1(
-  //         umi,
-  //         publicKey(eventPublicKey.toBase58())
-  //       );
-  //     } catch (error) {
-  //       if (i === retries - 1) throw error;
-  //       await new Promise((resolve) => setTimeout(resolve, delay));
-  //     }
-  //   }
-  // };
+    // Fetch admin's initial balance
+    const initialAdminBalance = await provider.connection.getBalance(
+      provider.wallet.publicKey
+    );
 
-  // // Helper function: Retry fetching a ticket
-  // const fetchTicketWithRetry = async (
-  //   ticketPublicKey: anchor.web3.PublicKey,
-  //   retries = 50,
-  //   delay = 2000
-  // ) => {
-  //   for (let i = 0; i < retries; i++) {
-  //     try {
-  //       return await fetchAssetV1(umi, publicKey(ticketPublicKey.toBase58()));
-  //     } catch (error) {
-  //       if (i === retries - 1) throw error;
-  //       await new Promise((resolve) => setTimeout(resolve, delay));
-  //     }
-  //   }
-  // };
+    // Call withdraw_from_treasury method from the program
+    await program.methods
+      .withdrawFromTreasury(amountToWithdraw)
+      .accounts({
+        admin: provider.wallet.publicKey,
+        platform: platformPda,
+        treasury: treasuryPda,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .rpc();
+
+    // Fetch admin's balance after withdrawal
+    const finalAdminBalance = await provider.connection.getBalance(
+      provider.wallet.publicKey
+    );
+
+    // Check that the balance has increased by the correct amount
+    expect(finalAdminBalance).to.be.greaterThan(initialAdminBalance);
+  });
+
+  // Helper function: Retry fetching a collection
+  const fetchCollectionWithRetry = async (
+    eventPublicKey: anchor.web3.PublicKey,
+    retries = 50,
+    delay = 2000
+  ) => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        return await fetchCollectionV1(
+          umi,
+          publicKey(eventPublicKey.toBase58())
+        );
+      } catch (error) {
+        if (i === retries - 1) throw error;
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+  };
+
+  // Helper function: Retry fetching a ticket
+  const fetchTicketWithRetry = async (
+    ticketPublicKey: anchor.web3.PublicKey,
+    retries = 50,
+    delay = 2000
+  ) => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        return await fetchAssetV1(umi, publicKey(ticketPublicKey.toBase58()));
+      } catch (error) {
+        if (i === retries - 1) throw error;
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+  };
 });
