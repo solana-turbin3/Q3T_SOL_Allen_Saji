@@ -3,7 +3,6 @@ import React, { useState, FormEvent, useEffect } from "react";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { WalletModalButton } from "@solana/wallet-adapter-react-ui"; // For wallet connect modal
 import { useSession } from "next-auth/react";
-import { createManager } from "@/app/lib/anchor";
 
 type FormData = {
   artistName: string;
@@ -25,6 +24,7 @@ const ArtistProfileForm = () => {
 
   // Wallet connection hooks
   const wallet = useWallet();
+  const connection = useConnection();
 
   const validateForm = (): boolean => {
     const newErrors: Partial<FormData> = {};
@@ -60,12 +60,12 @@ const ArtistProfileForm = () => {
 
     try {
       // Call the createManager function to create the PDA and let the user pay
-      const managerPda = await createManager(wallet);
+      const managerPda = await createManager(wallet, connection);
       console.log("Manager PDA:", managerPda.toString());
 
       const submissionData = {
         ...formData,
-        walletAddress: wallet.publicKey.toString(),
+        walletAddress: wallet.publicKey,
         userId: userId,
       };
 
@@ -94,6 +94,10 @@ const ArtistProfileForm = () => {
   useEffect(() => {
     if (error && wallet.connected) {
       setError(null);
+      if (wallet.connected) {
+      }
+      console.log("public key", wallet.publicKey?.toString());
+      console.log("connection", connection);
     }
   }, [wallet.connected, error]);
 

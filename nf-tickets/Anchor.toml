@@ -18,7 +18,7 @@ nf_tickets = "5qCfMhUmbJmau9SGHP1qAEMfKwEzyyyQ846SMXX2y6w"
 
 
 [programs.devnet]
-nf_tickets = "GnhtsucQHm8nTuffAK4SiQ74xvA9AGqQk34vrcp1W3ES"
+nf_tickets = "5qCfMhUmbJmau9SGHP1qAEMfKwEzyyyQ846SMXX2y6w"
 
 # [programs.mainnet]
 # nf_tickets = "FiTx6nFmuJnP7AX63RrXHWKZRDZL6FYTDFX1EQ61Ajvz"

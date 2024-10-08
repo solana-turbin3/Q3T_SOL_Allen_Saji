@@ -5,12 +5,11 @@ import {
 } from "@solana/wallet-adapter-react";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { PhantomWalletAdapter } from "@solana/wallet-adapter-wallets";
-import { clusterApiUrl } from "@solana/web3.js";
 
 require("@solana/wallet-adapter-react-ui/styles.css"); // Wallet styles
 
 const WalletContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const network = clusterApiUrl("devnet"); // or 'mainnet-beta' depending on your use case
+  const network = "http://localhost:8899";
 
   // Initialize Solana wallet (e.g., Phantom)
   const wallets = [new PhantomWalletAdapter()];
