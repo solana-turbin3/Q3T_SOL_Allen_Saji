@@ -219,7 +219,7 @@ pub mod nf_tickets {
             }
         ));
     
-        let signer_key = ctx.accounts.signer.key();
+        let signer_key = ctx.accounts.artist.key();
     
         let signer_seeds = &[
             b"manager",
@@ -269,7 +269,7 @@ pub mod nf_tickets {
             .data(data)
             .invoke()?;
 
-            let signer_key = ctx.accounts.signer.key();
+            let signer_key = ctx.accounts.artist.key();
             let signer_seeds = &[
                 b"manager",
                 signer_key.as_ref(),

@@ -14,7 +14,7 @@ pub struct CreateTicket<'info> {
    pub payer: Signer<'info>,
    #[account(mut)]
    #[account(
-       seeds = [b"manager", signer.key().as_ref()],
+       seeds = [b"manager", artist.key().as_ref()],
        bump = manager.bump
    )]
    pub manager: Account<'info, Manager>,
@@ -39,7 +39,9 @@ pub struct CreateTicket<'info> {
    pub system_program: Program<'info, System>,
    #[account(address = MPL_CORE_ID)]
    /// CHECK: This is checked by the address constraint
-   pub mpl_core_program: UncheckedAccount<'info>
+   pub mpl_core_program: UncheckedAccount<'info>,
+   /// CHECK: This is not dangerous because we don't read or write from this account
+   pub artist: UncheckedAccount<'info>
 }
 
 #[derive(AnchorDeserialize, AnchorSerialize)]
