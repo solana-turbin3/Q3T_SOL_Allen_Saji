@@ -60,4 +60,4 @@ The platform is built using modern web technologies and blockchain tools to ensu
 
 ### Architecture Diagram
 
-![Architecture for NFT Ticketing](nf-tickets/app/public/NFTickets architecture final.png)
+![Architecture for NFT Ticketing](./nf-tickets/app/public/NFTickets%20architecture%20final.png)
