@@ -1,3 +1,5 @@
+## Contract Devnet Address: 5qCfMhUmbJmau9SGHP1qAEMfKwEzyyyQ846SMXX2y6w
+
 # NFTickets: 🎟️ Artist & Events Social Media Ticketing Platform
 
 An NFT-based platform empowering artists and event organizers with customizable ticketing options and a social media space to promote, sell, and engage directly with their fans. The platform also offers a trustless secondary market for reselling tickets and a marketplace for artist tokens with exclusive perks for token holders.
@@ -13,6 +15,10 @@ This platform aims to revolutionize ticketing by leveraging blockchain technolog
 - Marketplace for artist tokens with limited supply.
 - Social media features to promote events and merchandise.
 - Integration with Solana Blinks for ticket sales via social media platforms.
+
+## Concept UI:
+
+![Artist Page](./public/Artist%20profile.png)
 
 ## ✨ Features
 
@@ -60,4 +66,4 @@ The platform is built using modern web technologies and blockchain tools to ensu
 
 ### Architecture Diagram
 
-![Architecture for NFT Ticketing](./nf-tickets/app/public/NFTickets%20architecture%20final.png)
+![Architecture for NFT Ticketing](./public/NFTickets%20architecture%20final.png)
