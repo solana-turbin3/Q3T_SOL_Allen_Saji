@@ -9,5 +9,5 @@ pub struct Listing {
 }
 
 impl Space for Listing {
-    const INIT_SPACE: usize = 8 + 32 + 32 + 8 + 1 + 1;
+    const INIT_SPACE: usize = 8 + 32 + 32 + 8 + 1;
 }
